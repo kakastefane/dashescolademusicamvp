@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MVP — Escola de Música</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0f0e0c;
+    --paper: #f5f0e8;
+    --cream: #ede7d6;
+    --rust: #c0460a;
+    --gold: #c49a2c;
+    --sage: #4a6741;
+    --slate: #3d4a5c;
+    --muted: #8a8070;
+    --border: #d4cfc3;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 60px 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 40px;
+    margin-bottom: 60px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 24px;
+  }
+
+  .eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--rust);
+  }
+
+  .meta {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 2;
+  }
+
+  /* SECTION HEADERS */
+  .section {
+    margin-bottom: 56px;
+  }
+
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .section-label .num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .section-label h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* INTRO BOX */
+  .intro-box {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 32px;
+    margin-bottom: 56px;
+    border-radius: 2px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+  }
+
+  .intro-stat {
+    padding-right: 24px;
+    border-right: 1px solid rgba(255,255,255,0.15);
+  }
+  .intro-stat:last-child { border-right: none; }
+
+  .intro-stat .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 8px;
+  }
+
+  .intro-stat .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* STACK CARD */
+  .stack-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .stack-card {
+    border: 1px solid var(--border);
+    padding: 20px 24px;
+    background: white;
+    border-radius: 2px;
+  }
+
+  .stack-card .tech {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--rust);
+    margin-bottom: 6px;
+  }
+
+  .stack-card .role {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* MODULES */
+  .module {
+    border: 1px solid var(--border);
+    margin-bottom: 16px;
+    background: white;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .module-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .module-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .module-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+  }
+
+  .module-header p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .badge.mvp { background: #e8f4ea; color: var(--sage); }
+  .badge.plus { background: #fef3e2; color: var(--gold); }
+  .badge.core { background: #fde8e0; color: var(--rust); }
+
+  .module-body {
+    padding: 16px 24px 20px;
+  }
+
+  .feat-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 24px;
+  }
+
+  .feat-list li {
+    font-size: 13px;
+    color: var(--slate);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+  }
+
+  .feat-list li::before {
+    content: '—';
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    flex-shrink: 0;
+    font-size: 11px;
+    margin-top: 1px;
+  }
+
+  /* NOTION SCHEMA */
+  .schema-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .schema-card {
+    border: 1px solid var(--border);
+    background: white;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .schema-card-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .schema-card-header .db-icon {
+    font-size: 16px;
+  }
+
+  .schema-card-header .db-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .schema-card-header .db-tag {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    background: var(--cream);
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .schema-fields {
+    padding: 12px 16px;
+    list-style: none;
+  }
+
+  .schema-fields li {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 3px 0;
+    border-bottom: 1px solid #f0ece4;
+    color: var(--slate);
+  }
+
+  .schema-fields li:last-child { border-bottom: none; }
+
+  .field-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--cream);
+    padding: 1px 6px;
+    border-radius: 3px;
+  }
+
+  /* ROADMAP */
+  .roadmap {
+    position: relative;
+  }
+
+  .roadmap::before {
+    content: '';
+    position: absolute;
+    left: 16px;
+    top: 24px;
+    bottom: 24px;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .phase {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: start;
+  }
+
+  .phase-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--ink);
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    z-index: 1;
+    position: relative;
+    margin-left: 0;
+  }
+
+  .phase-dot.active {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: white;
+  }
+
+  .phase-content {
+    border: 1px solid var(--border);
+    background: white;
+    padding: 16px 20px;
+    border-radius: 2px;
+  }
+
+  .phase-content .phase-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .phase-content .phase-duration {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--rust);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .phase-tasks {
+    list-style: none;
+  }
+
+  .phase-tasks li {
+    font-size: 12px;
+    color: var(--slate);
+    padding: 3px 0;
+    display: flex;
+    gap: 8px;
+  }
+
+  .phase-tasks li::before {
+    content: '›';
+    color: var(--muted);
+    font-weight: bold;
+  }
+
+  /* CONSIDERATIONS */
+  .consideration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .consideration {
+    border: 1px solid var(--border);
+    padding: 20px;
+    background: white;
+    border-radius: 2px;
+  }
+
+  .consideration .c-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .c-label.warn { color: #c0460a; }
+  .c-label.tip { color: var(--sage); }
+  .c-label.info { color: var(--slate); }
+
+  .consideration p {
+    font-size: 13px;
+    color: var(--slate);
+    line-height: 1.6;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+    padding-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer p {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+  }
+
+  .print-note {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 600px) {
+    .stack-grid, .schema-grid, .feat-list, .consideration-grid { grid-template-columns: 1fr; }
+    .intro-box { grid-template-columns: 1fr; }
+    .intro-stat { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 16px; }
+    header { grid-template-columns: 1fr; }
+    .meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <p class="eyebrow">Plano de Projeto · MVP</p>
+      <h1>Gestão da<br><em>Escola de Música</em></h1>
+    </div>
+    <div class="meta">
+      Versão 1.1<br>
+      IDE: Antigravity<br>
+      Framework: Next.js 15<br>
+      DB: Notion API<br>
+      Março 2026
+    </div>
+  </header>
+
+  <div class="intro-box">
+    <div class="intro-stat">
+      <div class="label">IDE</div>
+      <div class="value">Antigravity<br>(Google)</div>
+    </div>
+    <div class="intro-stat">
+      <div class="label">Framework</div>
+      <div class="value">Next.js 15<br>+ TypeScript</div>
+    </div>
+    <div class="intro-stat">
+      <div class="label">Prazo estimado</div>
+      <div class="value">4–6 semanas<br>para MVP</div>
+    </div>
+  </div>
+
+  <!-- STACK -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">01</span>
+      <h2>Stack Tecnológica</h2>
+    </div>
+    <div class="stack-grid">
+      <div class="stack-card">
+        <div class="tech">Antigravity (Google)</div>
+        <div class="role">IDE de desenvolvimento — ambiente, terminal, preview e deploy integrados</div>
+      </div>
+      <div class="stack-card">
+        <div class="tech">Next.js 15 + TypeScript</div>
+        <div class="role">Framework fullstack com App Router — Server Components, Server Actions e Route Handlers</div>
+      </div>
+      <div class="stack-card">
+        <div class="tech">Tailwind CSS + shadcn/ui</div>
+        <div class="role">Estilização utilitária + componentes prontos (tabelas, forms, badges, modais)</div>
+      </div>
+      <div class="stack-card">
+        <div class="tech">Notion API · @notionhq/client</div>
+        <div class="role">Banco de dados visual — token seguro no servidor via Server Actions, nunca exposto no cliente</div>
+      </div>
+      <div class="stack-card">
+        <div class="tech">Vercel</div>
+        <div class="role">Deploy contínuo direto do repositório — plano gratuito suficiente para o MVP</div>
+      </div>
+      <div class="stack-card">
+        <div class="tech">Por que Next.js 15?</div>
+        <div class="role">Chamadas à Notion API ficam em Server Actions — token nunca exposto. Server Components aceleram listagens. Deploy na Vercel é trivial.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">02</span>
+      <h2>Módulos do Sistema</h2>
+    </div>
+
+    <div class="module">
+      <div class="module-header">
+        <div class="module-icon" style="background:#fde8e0">👥</div>
+        <div>
+          <h3>Gestão de Alunos</h3>
+          <p>Cadastro completo, histórico e status</p>
+        </div>
+        <span class="badge core">Core</span>
+      </div>
+      <div class="module-body">
+        <ul class="feat-list">
+          <li>Cadastro com nome, telefone, responsável</li>
+          <li>Instrumento(s) que estuda</li>
+          <li>Status: ativo, inativo, trancado</li>
+          <li>Data de início e histórico</li>
+          <li>Observações e notas internas</li>
+          <li>Link para contratos e pagamentos</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="module-header">
+        <div class="module-icon" style="background:#e8f4ea">🗓️</div>
+        <div>
+          <h3>Agenda de Aulas</h3>
+          <p>Horários, professores e salas</p>
+        </div>
+        <span class="badge core">Core</span>
+      </div>
+      <div class="module-body">
+        <ul class="feat-list">
+          <li>Agendamento por aluno e professor</li>
+          <li>Horário fixo semanal ou avulso</li>
+          <li>Status: agendada, realizada, cancelada, faltou</li>
+          <li>Instrumento / modalidade da aula</li>
+          <li>Reposições vinculadas a faltas</li>
+          <li>Visualização semanal / mensal</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="module-header">
+        <div class="module-icon" style="background:#fef3e2">💰</div>
+        <div>
+          <h3>Financeiro & Pagamentos</h3>
+          <p>Mensalidades, cobranças e inadimplência</p>
+        </div>
+        <span class="badge core">Core</span>
+      </div>
+      <div class="module-body">
+        <ul class="feat-list">
+          <li>Geração de cobranças mensais</li>
+          <li>Status: pendente, pago, atrasado, cancelado</li>
+          <li>Vencimento e data de pagamento</li>
+          <li>Forma de pagamento (PIX, boleto, cartão)</li>
+          <li>Dashboard de inadimplentes</li>
+          <li>Relatório mensal de receita</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="module-header">
+        <div class="module-icon" style="background:#e8eaf6">📄</div>
+        <div>
+          <h3>Planos & Contratos</h3>
+          <p>Tipos de plano e vínculos contratuais</p>
+        </div>
+        <span class="badge mvp">MVP</span>
+      </div>
+      <div class="module-body">
+        <ul class="feat-list">
+          <li>Planos: mensal, trimestral, semestral</li>
+          <li>Modalidades: 1x, 2x, 3x por semana</li>
+          <li>Valor por plano</li>
+          <li>Início, fim e renovação do contrato</li>
+          <li>Status do contrato: ativo / expirado</li>
+          <li>Histórico de planos por aluno</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="module">
+      <div class="module-header">
+        <div class="module-icon" style="background:#f3e8ff">📊</div>
+        <div>
+          <h3>Dashboard Geral</h3>
+          <p>Visão rápida da escola</p>
+        </div>
+        <span class="badge mvp">MVP</span>
+      </div>
+      <div class="module-body">
+        <ul class="feat-list">
+          <li>Total de alunos ativos</li>
+          <li>Aulas do dia / semana</li>
+          <li>Receita prevista vs recebida no mês</li>
+          <li>Alunos com pagamento em atraso</li>
+          <li>Contratos vencendo em breve</li>
+          <li>Últimas aulas registradas</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NOTION SCHEMA -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">03</span>
+      <h2>Estrutura no Notion</h2>
+    </div>
+    <div class="schema-grid">
+
+      <div class="schema-card">
+        <div class="schema-card-header">
+          <span class="db-icon">👥</span>
+          <span class="db-name">Alunos</span>
+          <span class="db-tag">Database</span>
+        </div>
+        <ul class="schema-fields">
+          <li>Nome <span class="field-type">title</span></li>
+          <li>Telefone <span class="field-type">phone</span></li>
+          <li>Responsável <span class="field-type">text</span></li>
+          <li>Instrumento <span class="field-type">multi-select</span></li>
+          <li>Status <span class="field-type">select</span></li>
+          <li>Data início <span class="field-type">date</span></li>
+          <li>Plano atual <span class="field-type">relation → Contratos</span></li>
+        </ul>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-card-header">
+          <span class="db-icon">🗓️</span>
+          <span class="db-name">Aulas</span>
+          <span class="db-tag">Database</span>
+        </div>
+        <ul class="schema-fields">
+          <li>Título (auto) <span class="field-type">title</span></li>
+          <li>Aluno <span class="field-type">relation → Alunos</span></li>
+          <li>Professor <span class="field-type">relation → Professores</span></li>
+          <li>Data & hora <span class="field-type">date</span></li>
+          <li>Duração <span class="field-type">number (min)</span></li>
+          <li>Status <span class="field-type">select</span></li>
+          <li>Tipo <span class="field-type">select (fixa/avulsa/repo)</span></li>
+        </ul>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-card-header">
+          <span class="db-icon">💰</span>
+          <span class="db-name">Pagamentos</span>
+          <span class="db-tag">Database</span>
+        </div>
+        <ul class="schema-fields">
+          <li>Referência <span class="field-type">title</span></li>
+          <li>Aluno <span class="field-type">relation → Alunos</span></li>
+          <li>Valor <span class="field-type">number</span></li>
+          <li>Vencimento <span class="field-type">date</span></li>
+          <li>Data pag. <span class="field-type">date</span></li>
+          <li>Status <span class="field-type">select</span></li>
+          <li>Forma pag. <span class="field-type">select</span></li>
+        </ul>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-card-header">
+          <span class="db-icon">📄</span>
+          <span class="db-name">Contratos</span>
+          <span class="db-tag">Database</span>
+        </div>
+        <ul class="schema-fields">
+          <li>Título <span class="field-type">title</span></li>
+          <li>Aluno <span class="field-type">relation → Alunos</span></li>
+          <li>Plano <span class="field-type">relation → Planos</span></li>
+          <li>Início <span class="field-type">date</span></li>
+          <li>Fim <span class="field-type">date</span></li>
+          <li>Status <span class="field-type">select</span></li>
+          <li>Valor mensal <span class="field-type">rollup / number</span></li>
+        </ul>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-card-header">
+          <span class="db-icon">🎵</span>
+          <span class="db-name">Planos</span>
+          <span class="db-tag">Database</span>
+        </div>
+        <ul class="schema-fields">
+          <li>Nome do plano <span class="field-type">title</span></li>
+          <li>Duração <span class="field-type">select (mensal/trim/sem)</span></li>
+          <li>Aulas/semana <span class="field-type">number</span></li>
+          <li>Valor <span class="field-type">number</span></li>
+          <li>Descrição <span class="field-type">text</span></li>
+        </ul>
+      </div>
+
+      <div class="schema-card">
+        <div class="schema-card-header">
+          <span class="db-icon">🎸</span>
+          <span class="db-name">Professores</span>
+          <span class="db-tag">Database</span>
+        </div>
+        <ul class="schema-fields">
+          <li>Nome <span class="field-type">title</span></li>
+          <li>Instrumentos <span class="field-type">multi-select</span></li>
+          <li>Telefone <span class="field-type">phone</span></li>
+          <li>Disponibilidade <span class="field-type">text</span></li>
+          <li>Status <span class="field-type">select</span></li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ROADMAP -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">04</span>
+      <h2>Roadmap de Desenvolvimento</h2>
+    </div>
+    <div class="roadmap">
+
+      <div class="phase">
+        <div class="phase-dot active">01</div>
+        <div class="phase-content">
+          <div class="phase-title">Setup & Infraestrutura</div>
+          <div class="phase-duration">Semana 1 · ~3 dias</div>
+          <ul class="phase-tasks">
+            <li>Criar projeto Next.js 15 com TypeScript no Antigravity</li>
+            <li>Instalar e configurar Tailwind CSS + shadcn/ui</li>
+            <li>Criar as 6 databases no Notion com todos os campos</li>
+            <li>Configurar Notion API Integration + token no .env.local</li>
+            <li>Criar camada de serviço (lib/notion.ts) para abstração da API</li>
+            <li>Definir estrutura de pastas do App Router</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot">02</div>
+        <div class="phase-content">
+          <div class="phase-title">Módulo Alunos + Planos</div>
+          <div class="phase-duration">Semana 1–2 · ~5 dias</div>
+          <ul class="phase-tasks">
+            <li>CRUD completo de alunos (listar, criar, editar, arquivar)</li>
+            <li>Tela de detalhe do aluno com histórico</li>
+            <li>Cadastro e gerenciamento de planos</li>
+            <li>Vinculação aluno ↔ contrato ↔ plano</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot">03</div>
+        <div class="phase-content">
+          <div class="phase-title">Módulo Agenda</div>
+          <div class="phase-duration">Semana 2–3 · ~5 dias</div>
+          <ul class="phase-tasks">
+            <li>Listagem de aulas por dia / semana</li>
+            <li>Cadastro de aula (avulsa e recorrente)</li>
+            <li>Atualização de status (realizada, faltou, cancelada)</li>
+            <li>Filtros por professor e por aluno</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot">04</div>
+        <div class="phase-content">
+          <div class="phase-title">Módulo Financeiro</div>
+          <div class="phase-duration">Semana 3–4 · ~5 dias</div>
+          <ul class="phase-tasks">
+            <li>Listagem de pagamentos com filtros de status</li>
+            <li>Marcar pagamento como pago / em atraso</li>
+            <li>Tela de inadimplentes</li>
+            <li>Geração manual de cobrança mensal</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot">05</div>
+        <div class="phase-content">
+          <div class="phase-title">Dashboard & Polish</div>
+          <div class="phase-duration">Semana 4–5 · ~4 dias</div>
+          <ul class="phase-tasks">
+            <li>Dashboard com métricas principais</li>
+            <li>Alertas de vencimento e inadimplência</li>
+            <li>Autenticação (admin da escola)</li>
+            <li>Ajustes de UX, loading states, error handling</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="phase">
+        <div class="phase-dot">06</div>
+        <div class="phase-content">
+          <div class="phase-title">Deploy & Validação</div>
+          <div class="phase-duration">Semana 5–6 · ~3 dias</div>
+          <ul class="phase-tasks">
+            <li>Deploy na Vercel / Netlify</li>
+            <li>Testes com dados reais da escola</li>
+            <li>Coleta de feedback e ajustes</li>
+            <li>Documentação básica de uso</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CONSIDERAÇÕES -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">05</span>
+      <h2>Pontos de Atenção</h2>
+    </div>
+    <div class="consideration-grid">
+
+      <div class="consideration">
+        <div class="c-label warn">⚠ Limite da Notion API</div>
+        <p>A API do Notion tem rate limit de 3 req/seg. Para o MVP isso é suficiente, mas evite fazer muitas queries simultâneas. Implemente cache simples nas listagens que não mudam com frequência.</p>
+      </div>
+
+      <div class="consideration">
+        <div class="c-label tip">✓ Aulas recorrentes</div>
+        <p>Aulas fixas semanais podem virar um gerador que cria as entradas no Notion em batch (ex: próximas 4 semanas), ao invés de repetir infinitamente. Facilita muito edição e cancelamento.</p>
+      </div>
+
+      <div class="consideration">
+        <div class="c-label info">ℹ Geração de cobranças</div>
+        <p>Para o MVP, a geração de cobranças mensais pode ser manual (botão "gerar mensalidades do mês"). Automação via cron job pode ser adicionada na v2 depois da validação.</p>
+      </div>
+
+      <div class="consideration">
+        <div class="c-label tip">✓ Notion como backoffice</div>
+        <p>Uma vantagem do Notion como DB é que você mesmo pode editar dados diretamente no Notion para correções rápidas sem precisar de tela de admin para tudo. Agiliza muito o MVP.</p>
+      </div>
+
+      <div class="consideration">
+        <div class="c-label warn">⚠ Autenticação simples</div>
+        <p>Para o MVP, um único usuário admin (dono da escola) é suficiente. Multi-tenancy e perfil de professor podem ser adicionados na v2 após validar os fluxos principais.</p>
+      </div>
+
+      <div class="consideration">
+        <div class="c-label info">ℹ Futuras integrações v2</div>
+        <p>Pós-MVP vale considerar: geração de boleto (Asaas/Pagar.me), WhatsApp para cobrança automática, portal do aluno para ver suas aulas, e relatórios em PDF.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>MVP · Escola de Música · Plano v1.1 · Março 2026</p>
+    <p class="print-note">next.js 15 + notion api · antigravity ide</p>
+  </footer>
+
+</div>
+</body>
+</html>
