@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { listarAlunos } from '@/lib/notion/alunos'
 import { listarProfessores } from '@/lib/notion/professores'
 import { AulaForm } from '@/components/agenda/aula-form'
@@ -18,7 +19,9 @@ export default async function NovaAulaPage() {
                 </p>
             </div>
 
-            <AulaForm alunos={alunos} professores={professores} />
+            <Suspense fallback={<div className="text-sm text-muted-foreground">Carregando formulário...</div>}>
+                <AulaForm alunos={alunos} professores={professores} />
+            </Suspense>
         </div>
     )
 }

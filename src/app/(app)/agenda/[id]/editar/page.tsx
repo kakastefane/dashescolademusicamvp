@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { buscarAula } from '@/lib/notion/aulas'
 import { listarAlunos } from '@/lib/notion/alunos'
@@ -23,11 +24,13 @@ export default async function EditarAulaPage({ params }: { params: Promise<{ id:
                     </p>
                 </div>
 
-                <AulaForm
-                    alunos={alunos}
-                    professores={professores}
-                    aulaInicial={aula}
-                />
+                <Suspense fallback={<div className="text-sm text-muted-foreground">Carregando formulário...</div>}>
+                    <AulaForm
+                        alunos={alunos}
+                        professores={professores}
+                        aulaInicial={aula}
+                    />
+                </Suspense>
             </div>
         )
     } catch (error) {
