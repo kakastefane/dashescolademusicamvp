@@ -24,7 +24,8 @@ export function Sidebar() {
     return (
         <aside className="w-56 min-h-screen bg-card flex flex-col">
             <div className="p-6">
-                <h1 className="font-bold text-lg text-foreground">CMSolutions</h1>
+                <h1 className="font-bold text-xl text-foreground tracking-tight">Karis</h1>
+                <p className="text-xs text-muted-foreground/70 tracking-widest uppercase mt-0.5 select-none">Escola de Música</p>
             </div>
 
             <nav className="flex-1 p-3 space-y-1">
