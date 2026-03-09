@@ -27,9 +27,9 @@ import { Switch } from '@/components/ui/switch'
 import { AulaCard } from './aula-card'
 import type { Aula, Professor } from '@/types'
 
-// Horário de funcionamento: 08:00 às 20:00 (12 slots de 1 hora)
+// Horário de funcionamento: 08:00 às 22:00 (15 slots de 1 hora)
 const START_HOUR = 8
-const END_HOUR = 20
+const END_HOUR = 22
 const HOURS = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i)
 
 interface AgendaSemanaProps {
