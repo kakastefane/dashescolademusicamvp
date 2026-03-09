@@ -40,3 +40,51 @@ export async function buscarProfessor(id: string): Promise<Professor> {
         throw new Error('Erro ao buscar professor.')
     }
 }
+
+export type ProfessorFormData = Omit<Professor, 'id'>
+
+export async function criarProfessor(data: ProfessorFormData): Promise<Professor> {
+    try {
+        const page = await notion.pages.create({
+            parent: { database_id: DB.professores },
+            properties: {
+                'Nome': { title: [{ text: { content: data.nome } }] },
+                'Telefone': data.telefone ? { phone_number: data.telefone } : { phone_number: null },
+                'Instrumentos': { multi_select: data.instrumentos.map(i => ({ name: i })) },
+                'Status': { select: { name: data.status } },
+                'Disponibilidade': { rich_text: [{ text: { content: data.disponibilidade ?? '' } }] },
+            },
+        }) as PageObjectResponse
+        return mapearProfessor(page)
+    } catch (error: unknown) {
+        console.error('[criarProfessor]', error)
+        throw new Error('Erro ao criar professor.')
+    }
+}
+
+export async function atualizarProfessor(id: string, data: Partial<ProfessorFormData>): Promise<Professor> {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const properties: Record<string, any> = {}
+
+        if (data.nome) properties['Nome'] = { title: [{ text: { content: data.nome } }] }
+        if (data.telefone !== undefined) properties['Telefone'] = { phone_number: data.telefone ?? null }
+        if (data.instrumentos) properties['Instrumentos'] = { multi_select: data.instrumentos.map(i => ({ name: i })) }
+        if (data.status) properties['Status'] = { select: { name: data.status } }
+        if (data.disponibilidade !== undefined) properties['Disponibilidade'] = { rich_text: [{ text: { content: data.disponibilidade ?? '' } }] }
+
+        const page = await notion.pages.update({
+            page_id: id,
+            properties,
+        }) as PageObjectResponse
+
+        return mapearProfessor(page)
+    } catch (error: unknown) {
+        console.error('[atualizarProfessor]', error)
+        throw new Error('Erro ao atualizar professor.')
+    }
+}
+
+export async function arquivarProfessor(id: string): Promise<void> {
+    await atualizarProfessor(id, { status: 'inativo' })
+}

@@ -5,12 +5,13 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
     LayoutDashboard, Users, Calendar,
-    DollarSign, FileText, Music
+    DollarSign, FileText, Music, Mic
 } from 'lucide-react'
 
 const navItems = [
     { href: '/dashboard', label: 'Dashboard', icone: LayoutDashboard },
     { href: '/alunos', label: 'Alunos', icone: Users },
+    { href: '/professores', label: 'Professores', icone: Mic },
     { href: '/agenda', label: 'Agenda', icone: Calendar },
     { href: '/financeiro', label: 'Financeiro', icone: DollarSign },
     { href: '/contratos', label: 'Contratos', icone: FileText },
